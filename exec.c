@@ -14,27 +14,35 @@ exec(char *path, char **argv)
   int i, off;
   uint argc, sz, sp, ustack[3+MAXARG+1];
   struct elfhdr elf;
+//Describes single unnammed file holds metadata (file type size, num blocks)
+//inodes are layed out sequentially on disk at sb.startinode. each inode has 
+//a number inicating its postition on disk.
   struct inode *ip;
+//program section header
   struct proghdr ph;
+//pde_t page directory entry unsigned int.
   pde_t *pgdir, *oldpgdir;
   struct proc *curproc = myproc();
-
+//checks if there enough space to accommodate a log entry
   begin_op();
-
+//follows pathname until endpoint if file (file directory or device)
   if((ip = namei(path)) == 0){
     end_op();
     cprintf("exec: fail\n");
     return -1;
   }
+//reads inode from disk sets ip valid
   ilock(ip);
   pgdir = 0;
 
-  // Check ELF header
+  // Check ELF header == Executable and linkable format
+//readi read data from inode caller must hold ip->lock
   if(readi(ip, (char*)&elf, 0, sizeof(elf)) != sizeof(elf))
     goto bad;
   if(elf.magic != ELF_MAGIC)
     goto bad;
-
+//page directory entry struct
+//sets up kernel part of page table setup kvm
   if((pgdir = setupkvm()) == 0)
     goto bad;
 
@@ -65,6 +73,7 @@ exec(char *path, char **argv)
   sz = PGROUNDUP(sz);
   if((sz = allocuvm(pgdir, sz, sz + 2*PGSIZE)) == 0)
     goto bad;
+//clear pte_u on page used to create an inaccessaible page beneath the userstack
   clearpteu(pgdir, (char*)(sz - 2*PGSIZE));
   sp = sz;
 
