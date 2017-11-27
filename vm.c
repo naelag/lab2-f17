@@ -315,7 +315,7 @@ clearpteu(pde_t *pgdir, char *uva)
 // Given a parent process's page table, create a copy
 // of it for a child.
 pde_t*
-copyuvm(pde_t *pgdir, uint sz, uint startstack, uint endstack)
+copyuvm(pde_t *pgdir, uint sz, uint esp, uint endstack)
 {
   pde_t *d;
   pte_t *pte;
@@ -338,7 +338,7 @@ copyuvm(pde_t *pgdir, uint sz, uint startstack, uint endstack)
       goto bad;
   }
   //now also copies over stack that has been moved to end of kernbase
-  for(i = PGROUNDDOWN(endstack); i < startstack; i += PGSIZE){
+  for(i = PGROUNDDOWN(esp); i < endstack; i += PGSIZE){
     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
       panic("copyuvm: pte should exist");
     if(!(*pte & PTE_P))
@@ -350,8 +350,7 @@ copyuvm(pde_t *pgdir, uint sz, uint startstack, uint endstack)
     memmove(mem, (char*)P2V(pa), PGSIZE);
     if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0)
       goto bad;
-    }
-        
+    }      
   return d;
 
 bad:

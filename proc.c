@@ -190,7 +190,7 @@ fork(void)
   }
 
   // Copy process state from proc. addded begining and end of stack
-  if((np->pgdir = copyuvm(curproc->pgdir, curproc->sz, curproc->startstack, curproc->tf->esp)) == 0){
+  if((np->pgdir = copyuvm(curproc->pgdir, curproc->sz, curproc->tf->esp, curproc->startstack)) == 0){
     kfree(np->kstack);
     np->kstack = 0;
     np->state = UNUSED;
@@ -201,7 +201,6 @@ fork(void)
   np->endstack = curproc->endstack;// added
   np->parent = curproc;//added
   *np->tf = *curproc->tf;
-
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
 
@@ -219,6 +218,7 @@ fork(void)
   np->state = RUNNABLE;
 
   release(&ptable.lock);
+
 
   return pid;
 }

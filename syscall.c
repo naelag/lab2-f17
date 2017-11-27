@@ -63,8 +63,10 @@ argptr(int n, char **pp, int size)
  
   if(argint(n, &i) < 0)
     return -1;
-  if(size < 0 || (uint)i >= curproc->sz || (uint)i+size > curproc->sz)
-    return -1;
+ // if(size < 0 || (uint)i >= KERNBASE-PGSIZE || (uint)i+size > KERNBASE-PGSIZE)
+ // if(size < 0 || (uint)i >= curproc->sz || (uint)i+size > curproc->sz)
+if(size < 0 || (uint)i >= curproc->startstack || (uint)i+size > curproc->startstack) 
+  return -1;
   *pp = (char*)i;
   return 0;
 }

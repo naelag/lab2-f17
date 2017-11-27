@@ -75,9 +75,8 @@ exec(char *path, char **argv)
   // Make the first inaccessible.  Use the second as the user stack.
   //Made modifications here had sz  change from sz pg round up(sz)
   sz = PGROUNDUP(sz);
-  szstack = KERNBASE - (PGSIZE*4);//sets stack pointer to point to two pages
-  szstack = PGROUNDUP(szstack);
-  if((szstack = allocuvm(pgdir, szstack, szstack + 2*PGSIZE)) == 0)
+  //szstack = KERNBASE - (PGSIZE*3);//sets stack pointer to point to two pages
+  if((szstack = allocuvm(pgdir, KERNBASE- 3*PGSIZE, KERNBASE-PGSIZE)) == 0)
     goto bad;
 //clear pte_u on page used to create an inaccessaible page beneath the userstack
   clearpteu(pgdir, (char*)(szstack-2*PGSIZE));
@@ -119,7 +118,7 @@ if(copyout(pgdir, sp, argv[argc], strlen(argv[argc]) + 1) < 0)
   curproc->sz = sz;
   curproc->tf->eip = elf.entry;  // main
   curproc->tf->esp = sp;
-  curproc->endstack = sp;//current bottom of stack!
+  //curproc->endstack = sp;//current bottom of stack!
   switchuvm(curproc);
   freevm(oldpgdir);
   return 0;
