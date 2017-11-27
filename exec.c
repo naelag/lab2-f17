@@ -13,6 +13,7 @@ exec(char *path, char **argv)
   char *s, *last;
   int i, off;
   uint argc, sz, sp, ustack[3+MAXARG+1];
+  uint szstack;         //sz but for new stack
   struct elfhdr elf;
 //Describes single unnammed file holds metadata (file type size, num blocks)
 //inodes are layed out sequentially on disk at sb.startinode. each inode has 
@@ -47,8 +48,9 @@ exec(char *path, char **argv)
     goto bad;
 
   // Load program into memory.
-  sz = 0;
+  sz = 0; 
   for(i=0, off=elf.phoff; i<elf.phnum; i++, off+=sizeof(ph)){
+    //Reads inode
     if(readi(ip, (char*)&ph, off, sizeof(ph)) != sizeof(ph))
       goto bad;
     if(ph.type != ELF_PROG_LOAD)
@@ -57,6 +59,7 @@ exec(char *path, char **argv)
       goto bad;
     if(ph.vaddr + ph.memsz < ph.vaddr)
       goto bad;
+    //sets sz == to new size of allocated memory
     if((sz = allocuvm(pgdir, sz, ph.vaddr + ph.memsz)) == 0)
       goto bad;
     if(ph.vaddr % PGSIZE != 0)
@@ -70,19 +73,27 @@ exec(char *path, char **argv)
 
   // Allocate two pages at the next page boundary.
   // Make the first inaccessible.  Use the second as the user stack.
+  //Made modifications here had sz  change from sz pg round up(sz)
   sz = PGROUNDUP(sz);
-  if((sz = allocuvm(pgdir, sz, sz + 2*PGSIZE)) == 0)
+  szstack = KERNBASE - (PGSIZE*4);//sets stack pointer to point to two pages
+  szstack = PGROUNDUP(szstack);
+  if((szstack = allocuvm(pgdir, szstack, szstack + 2*PGSIZE)) == 0)
     goto bad;
 //clear pte_u on page used to create an inaccessaible page beneath the userstack
-  clearpteu(pgdir, (char*)(sz - 2*PGSIZE));
-  sp = sz;
+  clearpteu(pgdir, (char*)(szstack-2*PGSIZE));
+  //Later should probably change this to be at 0x40000000 rather than one below
+  //stack...
+  curproc->startstack = szstack;//top of stack ie highest address
+  sp = szstack;
+  //below kernbase rather than sz to move stack
 
   // Push argument strings, prepare rest of stack in ustack.
   for(argc = 0; argv[argc]; argc++) {
     if(argc >= MAXARG)
       goto bad;
     sp = (sp - (strlen(argv[argc]) + 1)) & ~3;
-    if(copyout(pgdir, sp, argv[argc], strlen(argv[argc]) + 1) < 0)
+    //Stack grows downwards already!!!!
+if(copyout(pgdir, sp, argv[argc], strlen(argv[argc]) + 1) < 0)
       goto bad;
     ustack[3+argc] = sp;
   }
@@ -108,6 +119,7 @@ exec(char *path, char **argv)
   curproc->sz = sz;
   curproc->tf->eip = elf.entry;  // main
   curproc->tf->esp = sp;
+  curproc->endstack = sp;//current bottom of stack!
   switchuvm(curproc);
   freevm(oldpgdir);
   return 0;
