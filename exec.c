@@ -76,7 +76,7 @@ exec(char *path, char **argv)
   //Made modifications here had sz  change from sz pg round up(sz)
   sz = PGROUNDUP(sz);
   //szstack = KERNBASE - (PGSIZE*3);//sets stack pointer to point to two pages
-  if((szstack = allocuvm(pgdir, KERNBASE- 3*PGSIZE, KERNBASE-PGSIZE)) == 0)
+  if((szstack = allocuvm(pgdir, (KERNBASE-4) - 2*PGSIZE, KERNBASE-4)) == 0)
     goto bad;
 //clear pte_u on page used to create an inaccessaible page beneath the userstack
   clearpteu(pgdir, (char*)(szstack-2*PGSIZE));
@@ -84,6 +84,7 @@ exec(char *path, char **argv)
   //stack...
   curproc->startstack = szstack;//top of stack ie highest address
   sp = szstack;
+ // cprintf("start stack: %x", curproc->startstack);
   //below kernbase rather than sz to move stack
 
   // Push argument strings, prepare rest of stack in ustack.
@@ -118,7 +119,7 @@ if(copyout(pgdir, sp, argv[argc], strlen(argv[argc]) + 1) < 0)
   curproc->sz = sz;
   curproc->tf->eip = elf.entry;  // main
   curproc->tf->esp = sp;
-  //curproc->endstack = sp;//current bottom of stack!
+  curproc->endstack = curproc->startstack-PGSIZE;//current bottom of stack!
   switchuvm(curproc);
   freevm(oldpgdir);
   return 0;

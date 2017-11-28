@@ -321,7 +321,7 @@ copyuvm(pde_t *pgdir, uint sz, uint esp, uint endstack)
   pte_t *pte;
   uint pa, i, flags;
   char *mem;
-
+  cprintf("Entering copyuvm\n");
   if((d = setupkvm()) == 0)
     return 0;
   for(i = 0; i < sz; i += PGSIZE){
@@ -339,6 +339,7 @@ copyuvm(pde_t *pgdir, uint sz, uint esp, uint endstack)
   }
   //now also copies over stack that has been moved to end of kernbase
   for(i = PGROUNDDOWN(esp); i < endstack; i += PGSIZE){
+   // cprintf("start of second for loop\n");
     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
       panic("copyuvm: pte should exist");
     if(!(*pte & PTE_P))

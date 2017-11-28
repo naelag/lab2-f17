@@ -183,14 +183,14 @@ fork(void)
   int i, pid;
   struct proc *np;
   struct proc *curproc = myproc();
-
+//  cprintf("Inside fork %x\n", curproc->startstack);
   // Allocate process.
   if((np = allocproc()) == 0){
     return -1;
   }
 
   // Copy process state from proc. addded begining and end of stack
-  if((np->pgdir = copyuvm(curproc->pgdir, curproc->sz, curproc->tf->esp, curproc->startstack)) == 0){
+  if((np->pgdir = copyuvm(curproc->pgdir, curproc->sz, curproc->endstack, curproc->startstack)) == 0){
     kfree(np->kstack);
     np->kstack = 0;
     np->state = UNUSED;
