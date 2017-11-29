@@ -1,0 +1,6 @@
+*.d
+*.swp
+*.asm
+*.sym
+*.out
+*.img

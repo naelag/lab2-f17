@@ -231,6 +231,8 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
 
   a = PGROUNDUP(oldsz);
   for(; a < newsz; a += PGSIZE){
+  //kalloc allocates one 4096 byte page returns pointer that kernel can use
+  //or returns 0 if the memory cannot be allocated
     mem = kalloc();
     if(mem == 0){
       cprintf("allocuvm out of memory\n");
@@ -313,13 +315,13 @@ clearpteu(pde_t *pgdir, char *uva)
 // Given a parent process's page table, create a copy
 // of it for a child.
 pde_t*
-copyuvm(pde_t *pgdir, uint sz)
+copyuvm(pde_t *pgdir, uint sz, uint esp, uint endstack)
 {
   pde_t *d;
   pte_t *pte;
   uint pa, i, flags;
   char *mem;
-
+  cprintf("Entering copyuvm\n");
   if((d = setupkvm()) == 0)
     return 0;
   for(i = 0; i < sz; i += PGSIZE){
@@ -335,6 +337,21 @@ copyuvm(pde_t *pgdir, uint sz)
     if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0)
       goto bad;
   }
+  //now also copies over stack that has been moved to end of kernbase
+  for(i = PGROUNDDOWN(esp); i < endstack; i += PGSIZE){
+   // cprintf("start of second for loop\n");
+    if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
+      panic("copyuvm: pte should exist");
+    if(!(*pte & PTE_P))
+      panic("copyuvm: page not present");
+    pa = PTE_ADDR(*pte);
+    flags = PTE_FLAGS(*pte);
+    if((mem = kalloc()) == 0)
+      goto bad;
+    memmove(mem, (char*)P2V(pa), PGSIZE);
+    if(mappages(d, (void*)i, PGSIZE, V2P(mem), flags) < 0)
+      goto bad;
+    }      
   return d;
 
 bad:

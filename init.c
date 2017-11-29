@@ -18,7 +18,7 @@ main(void)
   }
   dup(0);  // stdout
   dup(0);  // stderr
-
+  printf(1,"inside init\n");
   for(;;){
     printf(1, "init: starting sh\n");
     pid = fork();
