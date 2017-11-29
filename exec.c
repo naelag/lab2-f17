@@ -75,11 +75,13 @@ exec(char *path, char **argv)
   // Make the first inaccessible.  Use the second as the user stack.
   //Made modifications here had sz  change from sz pg round up(sz)
   sz = PGROUNDUP(sz);
+   if((allocuvm(pgdir, sz, sz + 2*PGSIZE) == 0))
+      goto bad;
   //szstack = KERNBASE - (PGSIZE*3);//sets stack pointer to point to two pages
   if((szstack = allocuvm(pgdir, (KERNBASE-4) - 2*PGSIZE, KERNBASE-4)) == 0)
     goto bad;
 //clear pte_u on page used to create an inaccessaible page beneath the userstack
-  clearpteu(pgdir, (char*)(szstack-2*PGSIZE));
+  clearpteu(pgdir, (char*)(sz)); 
   //Later should probably change this to be at 0x40000000 rather than one below
   //stack...
   curproc->startstack = szstack;//top of stack ie highest address
