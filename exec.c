@@ -63,10 +63,18 @@ exec(char *path, char **argv)
   // Allocate two pages at the next page boundary.
   // Make the first inaccessible.  Use the second as the user stack.
   sz = PGROUNDUP(sz);
-  if((sz = allocuvm(pgdir, sz, sz + 2*PGSIZE)) == 0)
+  /*
+  if((sz = allocuvm(pgdir, sz, sz + 2*PGSIZE)) == 0) // allocates two pages (user stack and page guard)
     goto bad;
   clearpteu(pgdir, (char*)(sz - 2*PGSIZE));
   sp = sz;
+  */
+  sp = KERNBASE - 1; // StackTop can't be same as KERNBASE/our new upper bound
+  if((allocuvm(pgdir, sp - 2*PGSIZE, sp) == 0) //
+     goto bad;
+  curproc->stackAmount = sp;    // keep track of stack size
+  cprintf("Current stack size: %d\n", curproc->stackAmount); // print out stats
+
 
   // Push argument strings, prepare rest of stack in ustack.
   for(argc = 0; argv[argc]; argc++) {

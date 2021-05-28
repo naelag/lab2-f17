@@ -199,6 +199,8 @@ fork(void)
   np->sz = curproc->sz;
   np->parent = curproc;
   *np->tf = *curproc->tf;
+  np->stackAmount = curproc->stackAmount; // keep track of new process' stack amount
+
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
