@@ -69,10 +69,10 @@ exec(char *path, char **argv)
   clearpteu(pgdir, (char*)(sz - 2*PGSIZE));
   sp = sz;
   */
-  sp = KERNBASE - 1; // StackTop can't be same as KERNBASE/our new upper bound
-  if(allocuvm(pgdir, sp - 2*PGSIZE, sp) == 0) //
+  uint stp = KERNBASE - 1; // StackTop can't be same as KERNBASE/our new upper bound
+  if(sp = allocuvm(pgdir, stp - 2*PGSIZE, stp) == 0) // 2*PG to keep page guard
      goto bad;
-  curproc->stackAmount = sp;    // keep track of stack size
+  curproc->stackAmount = stp;    // keep track of stack size
   cprintf("Current stack size: %d\n", curproc->stackAmount); // print out stats
 
 

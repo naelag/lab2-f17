@@ -319,8 +319,6 @@ copyuvm(pde_t *pgdir, uint sz)
   pte_t *pte;
   uint pa, i, flags;
   char *mem;
-  uint stp = KERNBASE -1; // stp is the top of the heap
-
 
   if((d = setupkvm()) == 0)
     return 0;
@@ -338,7 +336,7 @@ copyuvm(pde_t *pgdir, uint sz)
       goto bad;
   }
 
-  for(i = stp; i > stp - (curproc->stackAmount) * PGSIZE; i -= PGSIZE){ // need to copy stack and page guard
+  for(i = KERNBASE - 2*PGSIZE; i < KERNBASE; i += PGSIZE){
       if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
           panic("copyuvm: pte should exist");
       if(!(*pte & PTE_P))
