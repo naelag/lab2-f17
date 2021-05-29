@@ -70,7 +70,7 @@ exec(char *path, char **argv)
   sp = sz;
   */
   uint stp = KERNBASE - 1; // StackTop can't be same as KERNBASE/our new upper bound
-  if(sp = allocuvm(pgdir, stp - 2*PGSIZE, stp) == 0) // 2*PG to keep page guard
+  if((sp = allocuvm(pgdir, stp - 2*PGSIZE, stp)) == 0) // 2*PG to keep page guard
      goto bad;
   curproc->stackAmount = stp;    // keep track of stack size
   cprintf("Current stack size: %d\n", curproc->stackAmount); // print out stats
