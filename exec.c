@@ -70,7 +70,7 @@ exec(char *path, char **argv)
   sp = sz;
   */
   sp = KERNBASE - 1; // StackTop can't be same as KERNBASE/our new upper bound
-  if((allocuvm(pgdir, sp - 2*PGSIZE, sp) == 0) //
+  if(allocuvm(pgdir, sp - 2*PGSIZE, sp) == 0) //
      goto bad;
   curproc->stackAmount = sp;    // keep track of stack size
   cprintf("Current stack size: %d\n", curproc->stackAmount); // print out stats

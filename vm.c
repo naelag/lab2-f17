@@ -321,6 +321,7 @@ copyuvm(pde_t *pgdir, uint sz)
   char *mem;
   uint stp = KERNBASE -1; // stp is the top of the heap
 
+
   if((d = setupkvm()) == 0)
     return 0;
   for(i = 0; i < sz; i += PGSIZE){
