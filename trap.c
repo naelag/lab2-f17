@@ -78,6 +78,24 @@ trap(struct trapframe *tf)
     lapiceoi();
     break;
 
+  case T_PGFLT: {
+      //panic("trap");
+
+      uint fa = rcr2();  // rcr2 gives address page fault
+      if (fa > KERNBASE - 1) {
+          exit();
+      }
+
+      fa = PGROUNDDOWN(fa);
+
+      if (allocuvm(myproc()->pgdir, fa, fa + PGSIZE) == 0) {
+          exit();
+      }
+
+      myproc()->stackAmount++;
+      cprintf("Increased stack size\n");
+      break;
+  }
   //PAGEBREAK: 13
   default:
     if(myproc() == 0 || (tf->cs&3) == 0){
