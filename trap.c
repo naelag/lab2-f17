@@ -82,12 +82,8 @@ trap(struct trapframe *tf)
       //panic("trap");
 
       uint fa = rcr2();  // rcr2 gives address page fault
-      if (fa > KERNBASE - 1) {
-          exit();
-      }
 
       fa = PGROUNDDOWN(fa);
-
       if (allocuvm(myproc()->pgdir, fa, fa + PGSIZE) == 0) {
           exit();
       }
