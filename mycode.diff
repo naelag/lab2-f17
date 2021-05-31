@@ -1,0 +1,25 @@
+diff --git a/trap.c b/trap.c
+index 41c66eb..1ecce8e 100644
+--- a/trap.c
++++ b/trap.c
+@@ -78,6 +78,20 @@ trap(struct trapframe *tf)
+     lapiceoi();
+     break;
+ 
++  case T_PGFLT: {
++      //panic("trap");
++
++      uint fa = rcr2();  // rcr2 gives address page fault
++
++      fa = PGROUNDDOWN(fa);
++      if (allocuvm(myproc()->pgdir, fa, fa + PGSIZE) == 0) {
++          exit();
++      }
++
++      myproc()->stackAmount++;
++      cprintf("Increased stack size\n");
++      break;
++  }
+   //PAGEBREAK: 13
+   default:
+     if(myproc() == 0 || (tf->cs&3) == 0){
