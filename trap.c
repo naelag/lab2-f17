@@ -13,6 +13,9 @@ struct gatedesc idt[256];
 extern uint vectors[];  // in vectors.S: array of 256 entry pointers
 struct spinlock tickslock;
 uint ticks;
+uint last;
+uint bottom;
+uint top;
 
 void
 tvinit(void)
@@ -77,6 +80,15 @@ trap(struct trapframe *tf)
             cpuid(), tf->cs, tf->eip);
     lapiceoi();
     break;
+    // ** Added a case for page fault 
+  case T_PGFLT: ;
+        if(allocuvm(myproc()->pgdir, KERNBASE - (myproc()->num_pages * PGSIZE * 2), PGROUNDUP(rcr2())) == 0){
+         	cprintf("PAGEFAULT\n");
+          	break;
+          }
+          myproc()->num_pages = myproc()->num_pages+ 1;
+          cprintf("Page count increased to: %d \n", myproc()->num_pages);
+      break;
 
   //PAGEBREAK: 13
   default:

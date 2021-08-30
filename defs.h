@@ -180,15 +180,13 @@ int             deallocuvm(pde_t*, uint, uint);
 void            freevm(pde_t*);
 void            inituvm(pde_t*, char*, uint);
 int             loaduvm(pde_t*, char*, struct inode*, uint, uint);
-pde_t*          copyuvm(pde_t*, uint);
+pde_t*          copyuvm(pde_t*, uint, uint); // ** added an extra arg for stack
 void            switchuvm(struct proc*);
 void            switchkvm(void);
 int             copyout(pde_t*, uint, void*, uint);
 void            clearpteu(pde_t *pgdir, char *uva);
 
-//made mappages visible (and removed static) to facilitate implementing shm
-int
-mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm);
+// ** deleted mappages was giving compilation problems
 
 //shm.c
 void shminit(void);
