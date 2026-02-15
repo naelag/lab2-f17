@@ -25,6 +25,8 @@ int sleep(int);
 int uptime(void);
 int shm_open(int, char **);
 int shm_close(int);
+int clone(void(*)(void*, void*), void*, void*, void*);
+int join(void**);
 
 // ulib.c
 int stat(char*, struct stat*);
@@ -39,3 +41,16 @@ void* memset(void*, int, uint);
 void* malloc(uint);
 void free(void*);
 int atoi(const char*);
+
+// thread library (ulib.c)
+#define PGSIZE 4096
+
+struct lock {
+  uint locked;
+};
+
+int thread_create(void (*start_routine)(void*, void*), void *arg1, void *arg2);
+int thread_join(void);
+void lock_init(struct lock*);
+void lock_acquire(struct lock*);
+void lock_release(struct lock*);
